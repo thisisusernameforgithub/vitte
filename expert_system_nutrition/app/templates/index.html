@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 id="welcome-message">Добро пожаловать</h2>
+  <button id="logout-btn" class="btn btn-danger">Выйти</button>
+</div>
+
+<hr>
+
+<!-- уведомления -->
+<div id="alert-container"></div>
+
+<!-- раздел добавления продуктов в рацион -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h3 class="card-title">Добавить продукт в рацион</h3>
+    <!-- поиск -->
+    <div class="mb-3">
+      <label for="product-search" class="form-label">Найдите продукт</label>
+      <input type="text" class="form-control" id="product-search" placeholder="Начните вводить название...">
+      <div id="search-results" class="list-group mt-2"></div>
+    </div>
+    <!-- добавление -->
+    <form id="add-item-form">
+      <input type="hidden" id="selected-product-id">
+      <div class="mb-3">
+        <label for="selected-product-name" class="form-label">Выбранный продукт</label>
+        <input type="text" class="form-control" id="selected-product-name" disabled>
+      </div>
+      <div class="mb-3">
+        <label for="product-weight" class="form-label">Вес (граммы)</label>
+        <input type="number" class="form-control" id="product-weight" required min="1" placeholder="100">
+      </div>
+      <button type="submit" class="btn btn-primary">Добавить</button>
+    </form>
+  </div>
+</div>
+
+<!-- рацион на сегодня -->
+<div class="card">
+  <div class="card-body">
+    <h3 class="card-title">Рацион на сегодня</h3>
+    <div id="ration-display" class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Продукт</th>
+            <th>Вес (г)</th>
+            <th>Ккал</th>
+            <th>Белки</th>
+            <th>Жиры</th>
+            <th>Углеводы</th>
+          </tr>
+        </thead>
+        <tbody id="ration-items-table">
+          <!-- тут будут строки с продуктами -->
+        </tbody>
+        <tfoot id="ration-totals-table" style="font-weight: bold;">
+          <!-- итоги -->
+        </tfoot>
+      </table>
+    </div>
+    <!-- оцценка + результат -->
+    <div class="mt-3">
+      <button id="evaluate-ration-btn" class="btn btn-info">Получить оценку рациона</button>
+      <div id="evaluation-result" class="mt-2 fw-bold">
+        <!-- тут результат оценки -->
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}
