@@ -33,9 +33,14 @@ pip install -r requirements.txt
 
 #### 4. Подготовка данных и базы
 
-Перед первым запуском необходимо подготовить модель, структуру базы данных и наполнить ее продуктами
+Перед первым запуском необходимо подготовить датасет, модель, структуру базы данных и наполнить ее продуктами
+
+> датасет с [kagle](https://www.kaggle.com/datasets/mostov/food-composition-data-usda-sr11sr28/data) - [прямая ссылка](https://storage.googleapis.com/kaggle-data-sets/7674587/12184771/bundle/archive.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gcp-kaggle-com%40kaggle-161607.iam.gserviceaccount.com%2F20260501%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260501T230414Z&X-Goog-Expires=259200&X-Goog-SignedHeaders=host&X-Goog-Signature=755e8f77b841850e2aa6263b2902f8856a236ad206de60c396f1dbbcc5c2498a856ef9a1ae2588d32ec89907cc0b59427ad18047973b36bf3d3fa871f66147fd2f4c8fecb7b1ec077c5f74a33df9bdcee2adf25b0af9fff26ece31f2c60e807a0e834b2681f288759e498cdb82b1f14e79b5f60de6cb73e655047eeabffd62513094329c3e3583eb5d235ee72de282640ab5148702808ebb80e0554b752fd7cc0756adada9c63d91e50140a32c8be0597165233ec883b3918696c735c9942d56858899c61e7339b149b7458a84fe9e338bc1861c91a61414a370404155e21567a75fa4d0e6849e66581841e2786661d692674f5be3776a2cd646f9162a23c182) на загрузку архива с датасетом
 
 ```bash
+# убедитесь, что архив с датасетом archive.zip находится в директории expert_system_nutrition и запустите скрипт подготовки датасета
+python prepare_data.py
+
 # обучаем модель ML
 python train_model.py
 
