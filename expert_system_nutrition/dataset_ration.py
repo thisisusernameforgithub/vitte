@@ -84,7 +84,7 @@ def generate_realistic_dataset(n_samples=10000, output_file="ration_dataset.csv"
 
     df = pd.DataFrame(data, columns=["calories", "protein", "fat", "carbs", "label"])
     df.to_csv(output_file, index=False)
-    print(f"Успех! Датасет сохранен в {output_file}. Всего записей: {len(df)}")
+    print(f"Датасет сохранен в {output_file}. Всего записей: {len(df)}")
 
 
 if __name__ == "__main__":
