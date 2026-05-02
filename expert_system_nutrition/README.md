@@ -10,7 +10,7 @@
 
 > Ubuntu 22.04, 24.04 | Astra Linux 1.7.x, 1.8.x
 
-#### 1. Клонирование репозитория, выгрузка датасета
+#### 1. Клонирование репозитория, выгрузка датасета с продуктами
 
 ```bash
 # клонируем репозиторий и переходим в директорию проекта
@@ -33,13 +33,20 @@ pip install -r requirements.txt
 
 #### 4. Подготовка данных и базы
 
-Перед первым запуском необходимо подготовить датасет, модель, структуру базы данных и наполнить ее продуктами
+Перед первым запуском необходимо подготовить датасеты с продуктами и обучения, модель, структуру базы данных и наполнить ее продуктами
 
-> датасет с [kagle](https://www.kaggle.com/datasets/mostov/food-composition-data-usda-sr11sr28/data) - [прямая ссылка](https://storage.googleapis.com/kaggle-data-sets/7674587/12184771/bundle/archive.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gcp-kaggle-com%40kaggle-161607.iam.gserviceaccount.com%2F20260501%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260501T230414Z&X-Goog-Expires=259200&X-Goog-SignedHeaders=host&X-Goog-Signature=755e8f77b841850e2aa6263b2902f8856a236ad206de60c396f1dbbcc5c2498a856ef9a1ae2588d32ec89907cc0b59427ad18047973b36bf3d3fa871f66147fd2f4c8fecb7b1ec077c5f74a33df9bdcee2adf25b0af9fff26ece31f2c60e807a0e834b2681f288759e498cdb82b1f14e79b5f60de6cb73e655047eeabffd62513094329c3e3583eb5d235ee72de282640ab5148702808ebb80e0554b752fd7cc0756adada9c63d91e50140a32c8be0597165233ec883b3918696c735c9942d56858899c61e7339b149b7458a84fe9e338bc1861c91a61414a370404155e21567a75fa4d0e6849e66581841e2786661d692674f5be3776a2cd646f9162a23c182) на загрузку архива с датасетом
+> - датасет с продуктами на [kagle](https://www.kaggle.com/datasets/mostov/food-composition-data-usda-sr11sr28/data)
+> - [прямая ссылка на датасет с продуктами](https://storage.googleapis.com/kaggle-data-sets/7674587/12184771/bundle/archive.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gcp-kaggle-com%40kaggle-161607.iam.gserviceaccount.com%2F20260501%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260501T230414Z&X-Goog-Expires=259200&X-Goog-SignedHeaders=host&X-Goog-Signature=755e8f77b841850e2aa6263b2902f8856a236ad206de60c396f1dbbcc5c2498a856ef9a1ae2588d32ec89907cc0b59427ad18047973b36bf3d3fa871f66147fd2f4c8fecb7b1ec077c5f74a33df9bdcee2adf25b0af9fff26ece31f2c60e807a0e834b2681f288759e498cdb82b1f14e79b5f60de6cb73e655047eeabffd62513094329c3e3583eb5d235ee72de282640ab5148702808ebb80e0554b752fd7cc0756adada9c63d91e50140a32c8be0597165233ec883b3918696c735c9942d56858899c61e7339b149b7458a84fe9e338bc1861c91a61414a370404155e21567a75fa4d0e6849e66581841e2786661d692674f5be3776a2cd646f9162a23c182) на загрузку архива с датасетом
+> - [резервная ссылка датасета с продуктами](https://s36nrg.storage.yandex.net/rdisk/ff403baced69417571917d358c5c0a235045d17b6d03dbf34cc150300b153d19/69f61116/7aZzEiQkz1tYPxvERFgzISFharZvrubL3oGv7SdjH3dUIkplZBQ0NuQIZ9vDEQwp3VJxdUDJPTx8y9ooEus0Qg==?uid=0&filename=archive.zip&disposition=attachment&hash=3B6yMBTmVQZr4p4oM1uwuaMGLnvZ/D87PC5Zqo/OCu1CGk9pnZaeBArNux0SuYKcq/J6bpmRyOJonT3VoXnDag%3D%3D&limit=0&content_type=application%2Fzip&owner_uid=73193526&fsize=2197705&hid=294d06aa393276edcdbfcb2444f0d828&media_type=compressed&tknv=v3&ts=650d6ee35f180&s=e7c1b7f10da28f8a9b265275f8d841d9cd6f2c499cfe807f3037616b14f477b0&pb=U2FsdGVkX1-ERy1E7Qt1yv3OUST47NqXliexWOsvYOc6--UZJ1k0nB8iOrrDFi4IO3c4TDqq7tem1WW-Pw7c_S4gNYpi1gBB5mnxQtalBSM) на облако
+
+Датасет с данными для обучения будет автоматически сформирован скриптом `dataset_ration.py` на основе имеющегося датасета с продуктами. Будет составлено 10000 вариантов рациона на день на основе рекомендаций ВОЗ и Минздрава (рекомендация по балансу БЖУ и калорийности) - таким образом рационы состоят из реальной еды с реальным составом
 
 ```bash
-# убедитесь, что архив с датасетом archive.zip находится в директории expert_system_nutrition и запустите скрипт подготовки датасета
-python prepare_data.py
+# убедитесь, что архив с датасетом продуктов archive.zip находится в директории expert_system_nutrition и запустите скрипт подготовки датасета
+python prepare_data_products.py
+
+# подготовка датасета для обучения - ration_dataset.csv
+python dataset_ration.py
 
 # обучаем модель ML
 python train_model.py
@@ -48,21 +55,23 @@ python train_model.py
 flask db upgrade
 
 # загружаем датасет продуктов в БД
-FLASK_APP=run.py flask load-data
+flask load-data
+
+## (опционально) наполнение БД демо-данными: команда создаст пользователя/пароль - demo/demo123 и примеры рационов
+# flask seed-demo
+
+## (опционально) полный сброс базы данных
+# flask reset-db
 ```
 
-#### 5. Запуск
+#### 5. Запуск приложения
 
 ```bash
-gunicorn --bind 0.0.0.0:8000 run:app
-```
+# для запуска в режиме отладки
+python main.py
 
-Приложение будет доступно по адресу `http://127.0.0.1:8000`
-
-В качестве альтернативы (для отладки) можно использовать
-
-```bash
-FLASK_APP=run.py flask run
+# для запуска в проде: приложение будет доступно локально на порту 8000
+gunicorn --bind 0.0.0.0:8000 main:app
 ```
 
 ---

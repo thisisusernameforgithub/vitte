@@ -1,57 +1,104 @@
 # -*- coding: utf-8 -*-
 
-# Модуль для работы с моделью ML
+# Модуль интеллектуальной оценки рациона на базе обученной ML-модели
 
+import os
 import joblib
 import pandas as pd
-import os
+import logging
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "..", "model.joblib")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
-# модель оценки рациона
 class RationEvaluator:
-    def __init__(self, model_path=MODEL_PATH):
-        try:
-            self.model = joblib.load(model_path)
-            self.features = ["calories", "protein", "fat", "carbs"]
-            print(f"Модель успешно загружена из {model_path}")
-        except FileNotFoundError:
-            print(
-                f"Файл модели не найден по пути {model_path}. убедитесь, что вы запустили train_model.py"
+    def __init__(self, model_path=None):
+        if model_path is None:
+            self.model_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                "model.joblib",
             )
-            self.model = None
-        except Exception as e:
-            print(f"Произошла ошибка при загрузке модели: {e}")
-            self.model = None
+        else:
+            self.model_path = model_path
 
-    # предсказание для суточного набора КБЖУ
-    def predict(self, daily_totals):
-        if self.model is None:
-            return "Ошибка: Модель оценки недоступна."
+        self.model = None
+        self.version = "1.1.0"
+        self.features = ["calories", "protein", "fat", "carbs"]
+
+        self._load_model()
+
+    def _load_model(self):
+        if not os.path.exists(self.model_path):
+            logger.error(f"Файл модели не найден по пути: {self.model_path}")
+            return False
 
         try:
-            # предсказание
+            self.model = joblib.load(self.model_path)
+            logger.info(
+                f"Интеллектуальный модуль (v{self.version}) успешно инициализирован"
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Ошибка при загрузке бинарного файла модели: {e}")
+            return False
+
+    def is_ready(self):
+        if self.model is None:
+
+            return self._load_model()
+        return True
+
+    def validate_input(self, data):
+
+        # валидация входных данных (КБЖУ)
+
+        if not isinstance(data, dict):
+            logger.error("Входные данные должны быть словарем")
+            return False
+
+        for feature in self.features:
+            if feature not in data:
+                logger.warning(
+                    f"Входной вектор не полон. Отсутствует признак: {feature}"
+                )
+                return False
+            if not isinstance(data[feature], (int, float)):
+                logger.warning(
+                    f"Некорректный тип данных для признака {feature}: {type(data[feature])}"
+                )
+                return False
+            if data[feature] < 0:
+                logger.warning(f"Отрицательное значение для {feature} недопустимо")
+                return False
+        return True
+
+    def predict(self, daily_totals):
+        # классификация рациона на основе суммарных нутриентов
+        if not self.is_ready():
+            return "Ошибка: интеллектуальный модуль временно недоступен (модель не загружена)"
+
+        if not self.validate_input(daily_totals):
+            return "Ошибка: некорректные или неполные данные для экспертного анализа"
+
+        try:
             input_df = pd.DataFrame([daily_totals], columns=self.features)
-            prediction = self.model.predict(input_df)
-            return prediction[0]
+
+            # предсказание
+            prediction_array = self.model.predict(input_df)
+            result = str(prediction_array[0])
+
+            logger.info(f"Экспертное решение для КБЖУ {daily_totals}: {result}")
+
+            return result
 
         except Exception as e:
-            print(f"Произошла ошибка во время предсказания: {e}")
-            return "Ошибка при обработке данных для оценки"
+            logger.error(f"Ошибка при выполнении математического предсказания: {e}")
+            return "Ошибка при обработке данных в экспертном модуле"
 
+    def get_feature_importance(self):
+        if self.model and hasattr(self.model, "feature_importances_"):
+            return dict(zip(self.features, self.model.feature_importances_))
+        return None
 
-# дебаг - самотестирование (ручной запуск app/ml_model.py)
-# if __name__ == "__main__":
-#     evaluator = RationEvaluator()
-#     if evaluator.model:
-#         test_ration = {"calories": 1600, "protein": 80, "fat": 60, "carbs": 180}
-#         result = evaluator.predict(test_ration)
-#         print(f"рацион 1: {test_ration}")
-#         print(f"результат 1: {result}")
-#
-#         test_ration_2 = {"calories": 2800, "protein": 120, "fat": 90, "carbs": 350}
-#         result_2 = evaluator.predict(test_ration_2)
-#         print(f"рацион 2: {test_ration_2}")
-#         print(f"результат 2: {result_2}")
+    def __repr__(self):
+        return f"<RationEvaluator v{self.version} Ready={self.is_ready()}>"

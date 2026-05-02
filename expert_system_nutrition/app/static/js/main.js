@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const password = registerForm.querySelector("#password").value;
       const errorMessageDiv = registerForm.querySelector("#error-message");
 
-      const response = await fetch("/api/register", {
+      const response = await fetch("/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
           "success",
         );
         setTimeout(() => {
-          window.location.href = "/login";
+          window.location.href = "/auth/login";
         }, 1000);
       } else {
         errorMessageDiv.textContent = data.message || "Неизвестная ошибка";
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const password = loginForm.querySelector("#password").value;
       const errorMessageDiv = loginForm.querySelector("#error-message");
 
-      const response = await fetch("/api/login", {
+      const response = await fetch("/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       if (!response.ok) {
-        if (response.status === 401) window.location.href = "/login";
+        if (response.status === 401) window.location.href = "/auth/login";
         return;
       }
       const data = await response.json();
@@ -137,124 +137,134 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     // кнопка выхода
-    logoutBtn.addEventListener("click", async () => {
-      await fetch("/api/logout", { credentials: "same-origin" });
-      window.location.href = "/login";
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", async () => {
+          await fetch("/auth/logout", { credentials: "same-origin" });
+          window.location.href = "/auth/login";
+        });
+    }
 
     // поиск продуктов
-    productSearchInput.addEventListener("input", (e) => {
-      clearTimeout(debounceTimer);
-      const query = e.target.value;
-      if (query.length < 2) {
-        searchResultsContainer.innerHTML = "";
-        return;
-      }
-      debounceTimer = setTimeout(async () => {
-        const response = await fetch(`/api/products?q=${query}`, {
-          credentials: "same-origin",
-        });
-        const products = await response.json();
-        searchResultsContainer.innerHTML = "";
-        products.forEach((product) => {
-          const item = document.createElement("a");
-          item.href = "#";
-          item.className = "list-group-item list-group-item-action";
-          item.textContent = product.name;
-          item.addEventListener("click", (ev) => {
-            ev.preventDefault();
-            selectedProductIdInput.value = product.id;
-            selectedProductNameInput.value = product.name;
+    if (productSearchInput) {
+        productSearchInput.addEventListener("input", (e) => {
+          clearTimeout(debounceTimer);
+          const query = e.target.value;
+          if (query.length < 2) {
             searchResultsContainer.innerHTML = "";
-            productSearchInput.value = "";
-          });
-          searchResultsContainer.appendChild(item);
+            return;
+          }
+          debounceTimer = setTimeout(async () => {
+            const response = await fetch(`/api/products?q=${query}`, {
+              credentials: "same-origin",
+            });
+            const products = await response.json();
+            searchResultsContainer.innerHTML = "";
+            products.forEach((product) => {
+              const item = document.createElement("a");
+              item.href = "#";
+              item.className = "list-group-item list-group-item-action";
+              item.textContent = product.name;
+              item.addEventListener("click", (ev) => {
+                ev.preventDefault();
+                selectedProductIdInput.value = product.id;
+                selectedProductNameInput.value = product.name;
+                searchResultsContainer.innerHTML = "";
+                productSearchInput.value = "";
+              });
+              searchResultsContainer.appendChild(item);
+            });
+          }, 300);
         });
-      }, 300);
-    });
+    }
 
     // добавление продукта
-    addItemForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const productId = selectedProductIdInput.value;
-      const weight = productWeightInput.value;
-      const today = new Date().toISOString().split("T")[0]; // фикс на случай рассинхрона часовых поясов для UTC -> MSK
+    if (addItemForm) {
+        addItemForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const productId = selectedProductIdInput.value;
+          const weight = productWeightInput.value;
+          const today = new Date().toISOString().split("T")[0]; // фикс на случай рассинхрона часовых поясов для UTC -> MSK
 
-      if (!productId || !weight) {
-        showAlert("Выберите продукт и укажите его вес (в граммах)", "warning");
-        return;
-      }
+          if (!productId || !weight) {
+            showAlert("Выберите продукт и укажите его вес (в граммах)", "warning");
+            return;
+          }
 
-      const response = await fetch("/api/rations/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product_id: productId,
-          weight: weight,
-          date: today,
-        }),
-        credentials: "same-origin",
-      });
+          const response = await fetch("/api/rations/items", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              product_id: productId,
+              weight: weight,
+              date: today,
+            }),
+            credentials: "same-origin",
+          });
 
-      const data = await response.json();
-      if (response.ok) {
-        showAlert("Продукт добавлен", "success");
-        addItemForm.reset();
-        selectedProductNameInput.value = "";
-        renderRation(data);
-      } else {
-        showAlert(data.message || "Ошибка добавления продукта", "danger");
-      }
-    });
+          const data = await response.json();
+          if (response.ok) {
+            showAlert("Продукт добавлен", "success");
+            addItemForm.reset();
+            selectedProductNameInput.value = "";
+            renderRation(data);
+          } else {
+            showAlert(data.message || "Ошибка добавления продукта", "danger");
+          }
+        });
+    }
 
     // оценка рациона
-    evaluateRationBtn.addEventListener("click", async () => {
-      evaluationResult.textContent = "Идет оценка ...";
-      const today = new Date().toISOString().split("T")[0];
+    if (evaluateRationBtn) {
+        evaluateRationBtn.addEventListener("click", async () => {
+          evaluationResult.textContent = "Идет оценка ...";
+          const today = new Date().toISOString().split("T")[0];
 
-      const response = await fetch("/api/rations/evaluate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: today }),
-        credentials: "same-origin",
-      });
+          const response = await fetch("/api/rations/evaluate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ date: today }),
+            credentials: "same-origin",
+          });
 
-      const data = await response.json();
-      if (response.ok) {
-        evaluationResult.textContent = `Оценка: ${data.evaluation}`;
-        if (data.evaluation.includes("Дефицит")) {
-          evaluationResult.className = "mt-2 fw-bold text-primary";
-        } else if (data.evaluation.includes("Сбалансированный")) {
-          evaluationResult.className = "mt-2 fw-bold text-success";
-        } else {
-          evaluationResult.className = "mt-2 fw-bold text-danger";
-        }
-      } else {
-        evaluationResult.textContent = `Ошибка: ${data.message || "Не удалось получить оценку"}`;
-        evaluationResult.className = "mt-2 fw-bold text-warning";
-      }
-    });
+          const data = await response.json();
+          if (response.ok) {
+            evaluationResult.textContent = `Оценка: ${data.evaluation}`;
+            if (data.evaluation.includes("Дефицит")) {
+              evaluationResult.className = "mt-2 fw-bold text-primary";
+            } else if (data.evaluation.includes("Сбалансированный")) {
+              evaluationResult.className = "mt-2 fw-bold text-success";
+            } else {
+              evaluationResult.className = "mt-2 fw-bold text-danger";
+            }
+          } else {
+            evaluationResult.textContent = `Ошибка: ${data.message || "Не удалось получить оценку"}`;
+            evaluationResult.className = "mt-2 fw-bold text-warning";
+          }
+        });
+    }
 
     loadInitialRation();
 
     // удаление продукта из рациона
-    rationItemsTable.addEventListener("click", async (e) => {
-      if (e.target && e.target.classList.contains("delete-item-btn")) {
-        const itemId = e.target.dataset.itemId;
+    if (rationItemsTable) {
+        rationItemsTable.addEventListener("click", async (e) => {
+          if (e.target && e.target.classList.contains("delete-item-btn")) {
+            const itemId = e.target.dataset.itemId;
 
-        const response = await fetch(`/api/rations/items/${itemId}`, {
-          method: "DELETE",
-          credentials: "same-origin",
+            const response = await fetch(`/api/rations/items/${itemId}`, {
+              method: "DELETE",
+              credentials: "same-origin",
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+              showAlert("Продукт удален из рациона", "info");
+              renderRation(data);
+            } else {
+              showAlert(data.message || "Ошибка удаления продукта", "danger");
+            }
+          }
         });
-
-        const data = await response.json();
-        if (response.ok) {
-          showAlert("Продукт удален из рациона", "info");
-          renderRation(data);
-        } else {
-          showAlert(data.message || "Ошибка удаления продукта", "danger");
-        }
-      }
-    });
+    }
   }
 });

@@ -5,8 +5,9 @@
 import os
 import pandas as pd
 import click
+import datetime
 from app import create_app, db
-from app.models import Product
+from app.models import User, Product, UserProfile, Ration, RationItem
 
 # cоздаем экземпляр приложения
 app = create_app()
@@ -41,7 +42,7 @@ def load_data_command():
             # очистка датасета
             for row in reader:
                 try:
-                    if len(row) < 8:
+                    if len(row) < 9:
                         skipped_rows += 1
                         continue
 
@@ -54,7 +55,7 @@ def load_data_command():
                     calories = float(row[4].replace(",", "."))
                     proteins = float(row[5].replace(",", "."))
                     fats = float(row[6].replace(",", "."))
-                    carbs = float(row[7].replace(",", "."))
+                    carbs = float(row[8].replace(",", "."))
 
                     product = Product(
                         name=name,
@@ -84,5 +85,61 @@ def load_data_command():
         click.echo(f"Ошибка во время загрузки: {e}")
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.cli.command("reset-db")
+def reset_db_command():
+    # ресет БД (удаляет файл БД)
+    if click.confirm("Вы уверены что хотите удалить файл БД?", abort=True):
+        db.session.remove()
+
+        db_path = os.path.join(os.path.dirname(__file__), "app.db")
+
+        if os.path.exists(db_path):
+            try:
+                os.remove(db_path)
+                click.echo(f"Файл базы данных {db_path} удален")
+            except Exception as e:
+                click.echo(f"Ошибка удаления файла: {e}")
+        else:
+            click.echo("Файл базы данных не найден")
+
+
+@app.cli.command("seed-demo")
+def seed_demo_command():
+    # демоданные, наполнение БД
+    test_user = User.query.filter_by(username="demo").first()
+    if not test_user:
+        test_user = User(username="demo", role="operator")
+        test_user.set_password("demo123")
+        db.session.add(test_user)
+        db.session.commit()
+        click.echo("Создан пользователь demo, пароль demo123")
+
+    if not test_user.profile:
+        profile = UserProfile(
+            user_id=test_user.id,
+            age=25,
+            weight=75.0,
+            height=180.0,
+            gender="male",
+            activity_level=1.375,
+        )
+        profile.calculate_daily_norms()
+        db.session.add(profile)
+        db.session.commit()
+        click.echo("Создан профиль для demo пользователя, пароль demo123")
+
+    # примеры рационов (за 3 дня)
+    p = Product.query.first()
+    if p:
+        for i in range(3):
+            date = datetime.date.today() - datetime.timedelta(days=i)
+            ration = Ration(user_id=test_user.id, date=date)
+            db.session.add(ration)
+            db.session.commit()
+
+            item = RationItem(ration_id=ration.id, product_id=p.id, weight=200)
+            db.session.add(item)
+            db.session.commit()
+        click.echo("Созданы демонстрационные рационы")
+    else:
+        click.echo("Сначала загрузите продукты (flask load-data)")

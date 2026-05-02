@@ -14,21 +14,27 @@ from config import Config
 db = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager()
-login.login_view = "main.login_page"
 
 
 def create_app(config_class=Config):
-
     app = Flask(__name__)
     app.config.from_object(config_class)
 
     db.init_app(app)
-    migrate.init_app(app, db)
+    migrate.init_app(app, db, render_as_batch=True)
     login.init_app(app)
+
+    login.login_view = "auth.login"
+    login.login_message = "Для доступа необходимо авторизоваться"
+    login.login_message_category = "info"
 
     from app.routes import main_bp
 
     app.register_blueprint(main_bp)
+
+    from app.auth import auth_bp
+
+    app.register_blueprint(auth_bp, url_prefix="/auth")
 
     from app import models
 
