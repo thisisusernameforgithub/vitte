@@ -15,7 +15,7 @@ app = create_app()
 
 @app.cli.command("load-data")
 def load_data_command():
-    # загрузка датасета
+    # загрузка справочника
     import csv
 
     csv_path = os.path.join(
@@ -26,7 +26,7 @@ def load_data_command():
         click.echo(f"Ошибка: файл {csv_path} не найден")
         return
 
-    click.echo("Загрузка из датасета ...")
+    click.echo("Загрузка из справочника ...")
 
     try:
         db.session.query(Product).delete()
@@ -39,7 +39,7 @@ def load_data_command():
             reader = csv.reader(infile, delimiter=";")
             next(reader, None)
 
-            # очистка датасета
+            # очистка справочника
             for row in reader:
                 try:
                     if len(row) < 9:
